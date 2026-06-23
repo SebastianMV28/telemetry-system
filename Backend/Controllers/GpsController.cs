@@ -10,14 +10,14 @@ public class GpsController : ControllerBase
     [HttpPost("gps")]
     public IActionResult PostGps([FromBody] GpsRequest request)
     {
-        request.Timestamp = DateTime.UtcNow;
+        
         // Validaciones
 
         //Valida que el body de la solicitud este completo
         if (request == null)
             return BadRequest("Body requerido");
         //Valida el ingreso del id para la solicitud
-        if (string.IsNullOrEmpty(request.VehicleId))
+        if (string.IsNullOrWhiteSpace(request.VehicleId))
             return BadRequest("vehicle_id es obligatorio");
         //Valida que el valor de latencia este dentro de los parametros correctos
         if (request.Lat < -90 || request.Lat > 90)
@@ -27,15 +27,17 @@ public class GpsController : ControllerBase
             return BadRequest("lng inválido");
         //Valida la fecha y hora no sean iguales al valor por defecto
         if (request.Timestamp == default)
-            return BadRequest("timestamp inválido");
+            return BadRequest("Timestamp inválido");
 
         // Guardar
         //Si la solicitud del vehiculo no se encuentra en el dictionario lo agrega como un nuevo objeto.
+        //En este caso, verifica si la Id se encuentra en el diccionario.
         if (!vehicles.ContainsKey(request.VehicleId))
         {
+            //Aca agrega el nuevo vehiculo al diccionario, quedando como una lista por este id.
             vehicles[request.VehicleId] = new List<GpsRequest>();
         }
-        //Aca agrega la solicitud a la lista
+        //Aca agrega la solicitud a la lista del id ya existente.
         vehicles[request.VehicleId].Add(request);
 
         return StatusCode(201, new { message = "Coordenada guardada" });
@@ -59,14 +61,16 @@ public class GpsController : ControllerBase
             {
                 // Datos recientes → evaluar movimiento
 
+                //Evalua la primera timestamp, al ser la primera establece al auto en movimiento.
                 if (gpsList.Count == 1)
                 {
                     status = "En movimiento";
                 }
                 else
                 {
+                    //Aca evalua en la lista cual es la posicion anterior
                     var prev = gpsList[gpsList.Count - 2];
-
+                    //Se compara con la ultima posicion, ya sea por latencia o longitud, de ser diferentes pues va a establecer el estado en movimiento
                     if (last.Lat != prev.Lat || last.Lng != prev.Lng)
                     {
                         status = "En movimiento";
@@ -77,7 +81,8 @@ public class GpsController : ControllerBase
                     }
                 }
             }
-            else if (diff.TotalSeconds <= 120)
+            //Si la diferencia de la ultima posicion es menor o igual dos minutos, el estado sera Detenido
+            else if (diff.TotalSeconds <= 120) 
             {
                 // Entre 1 y 2 minutos
                 status = "Detenido";
@@ -97,13 +102,75 @@ public class GpsController : ControllerBase
                 last_seen = last.Timestamp,
                 status = status
             };
+
+        
+
         });
 
         return Ok(result);
     }
+
+    //Metodo GET/vehicles/id
+    
+    [HttpGet("vehicles/{id}")]
+    public IActionResult GetVehicleById(string id)
+    {
+        if (!vehicles.ContainsKey(id))
+        {
+            return NotFound("Vehículo no encontrado");
+        }
+
+        var gpsList = vehicles[id];
+        var last = gpsList.Last();
+        var now = DateTime.UtcNow;
+        var diff = now - last.Timestamp;
+
+        string status;
+
+        if (diff.TotalSeconds <= 60)
+        {
+            if (gpsList.Count == 1)
+            {
+                status = "En movimiento";
+            }
+            else
+            {
+                var prev = gpsList[gpsList.Count - 2];
+
+                if (last.Lat != prev.Lat || last.Lng != prev.Lng)
+                {
+                    status = "En movimiento";
+                }
+                else
+                {
+                    status = "Detenido";
+                }
+            }
+        }
+        else if (diff.TotalSeconds <= 120)
+        {
+            status = "Detenido";
+        }
+        else
+        {
+            status = "Sin señal";
+        }
+
+        return Ok(new
+        {
+            vehicleId = id,
+            lastLat = last.Lat,
+            lastLng = last.Lng,
+            lastSeen = last.Timestamp,
+            status = status
+        });
+    }
+
+
+
     //Metodo DELETE
     // Define un endpoint HTTP DELETE en la ruta: /vehicles/{id}
-    // Por ejemplo: DELETE /vehicles/VH-001
+    // Por ejemplo DELETE /vehicles/VH-001
     [HttpDelete("vehicles/{id}")]
     public IActionResult DeleteVehicle(string id)
     {
