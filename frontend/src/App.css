@@ -90,3 +90,13 @@ th {
     border-radius: 8px;
     font-weight: bold;
 }
+.map-card {
+    margin-top: 24px;
+}
+
+.map {
+    height: 400px;
+    width: 100%;
+    border-radius: 12px;
+    margin-top: 16px;
+}

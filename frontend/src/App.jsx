@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "./App.css";
 
 function App() {
@@ -47,7 +48,10 @@ function App() {
         <main className="container">
             <header className="header">
                 <h1>Sistema de telemetría GPS</h1>
-                <p>Panel de control para el seguimiento en tiempo real de los vehículos de la flota</p>
+                <p>
+                    Panel de control para el seguimiento en tiempo real de los
+                    vehículos de la flota
+                </p>
 
                 {lastUpdate && (
                     <span className="last-update">
@@ -111,6 +115,39 @@ function App() {
                         </tbody>
                     </table>
                 )}
+            </section>
+
+            <section className="card map-card">
+                <h2>Mapa de vehículos</h2>
+
+                <MapContainer center={[4.65, -74.1]} zoom={11} className="map">
+                    <TileLayer
+                        attribution="&copy; OpenStreetMap contributors"
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+
+                    {vehicles.map((vehicle) => {
+                        const vehicleId =
+                            vehicle.vehicleId || vehicle.vehicle_id;
+                        const lastLat = vehicle.lastLat || vehicle.last_lat;
+                        const lastLng = vehicle.lastLng || vehicle.last_lng;
+
+                        if (!lastLat || !lastLng) return null;
+
+                        return (
+                            <Marker
+                                key={vehicleId}
+                                position={[lastLat, lastLng]}
+                            >
+                                <Popup>
+                                    <strong>{vehicleId}</strong>
+                                    <br />
+                                    Estado: {vehicle.status}
+                                </Popup>
+                            </Marker>
+                        );
+                    })}
+                </MapContainer>
             </section>
         </main>
     );
