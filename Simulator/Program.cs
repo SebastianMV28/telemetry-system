@@ -4,14 +4,12 @@ using System.Text.Json;
 // HttpClient se utiliza para enviar solicitudes HTTP al backend
 var httpClient = new HttpClient();
 
-// Lista de vehículos a simular.
-// La prueba requiere mínimo 3 vehículos.
 var vehicles = new List<string> { "VH-001", "VH-002", "VH-003","VH-004","VH-005" };
 
-// Random se usa para generar coordenadas aleatorias e inyectar errores
+
 var random = new Random();
 
-// Bucle infinito: el simulador seguirá enviando datos hasta detenerlo manualmente
+
 while (true)
 {
     // Envía una solicitud GPS por cada vehículo de la lista
@@ -20,22 +18,21 @@ while (true)
         await SendGps(vehicle);
     }
 
-    // Espera 5 segundos antes de enviar el siguiente grupo de coordenadas
-    // La prueba pide una coordenada cada 3 a 5 segundos
+    // Aca espera 5 segundos antes de enviar el siguiente grupo de coordenadas
+    
     await Task.Delay(5000);
 }
 
 async Task SendGps(string vehicleId)
 {
     // Aproximadamente el 10% de las solicitudes serán inválidas
-    // random.Next(0, 10) genera un número entre 0 y 9
-    // Si el número es 0, se enviará una solicitud inválida
+    
     bool shouldSendInvalidRequest = random.Next(0, 10) == 0;
 
     double lat;
     double lng;
 
-    // VH-003 se usa como vehículo detenido.
+
     if (vehicleId == "VH-003")
     {
         lat = 4.65;
@@ -101,7 +98,7 @@ async Task SendGps(string vehicleId)
     else
     {
         // Solicitud GPS válida
-        // El timestamp se envía en formato ISO 8601 usando ToString("o")
+        
         data = new
         {
             vehicleId = vehicleId,

@@ -381,7 +381,7 @@ Algunas mejoras que podrían implementarse en una siguiente versión son:
 Link del video:
 
 ```txt
-https://youtu.be/-87MhxZneII
+https://www.youtube.com/watch?v=7OfACzCfGys
 ```
 
 En el video se muestra:
