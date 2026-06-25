@@ -381,7 +381,7 @@ Algunas mejoras que podrían implementarse en una siguiente versión son:
 Link del video:
 
 ```txt
-PENDIENTE: agregar aquí el enlace de YouTube no listado
+https://youtu.be/-87MhxZneII
 ```
 
 En el video se muestra:
